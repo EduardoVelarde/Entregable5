@@ -1,0 +1,46 @@
+    
+    <h1 class="mb-3">
+        Carga tus productos en el siguiente formulario
+    </h1>
+    <div class="d-flex justify-content-center mb-5">
+    <form action="products" method="post" class=" d-flex flex-column" style="width: 500px;">
+        <label for="name" class="input-group-tex">Nombre del producto</label>
+        <input type="text" name="name" id="name" class="form-control">
+        <label for="price"class="input-group-tex" >Price</label>
+        <input type="text" name="price" id="price" class="form-control">
+        <label for="url" class="input-group-tex">Url</label>
+        <input type="text" name="url" id="url" class="form-control">
+
+        <input type="submit" value="SUBMIT" class="btn btn-success mt-3">
+    </form>
+    </div>
+    <h1 class="mb-3">Products</h1>
+    {{#each data}}
+    <div class="row border border-secondary border-1 m-4" style="width: 700px;">
+        <div class="row">
+            <div class="d-flex flex-row border border-secondary border-1 m-2" >
+        <div class=""> nombre de producto: {{this.name}}</div>
+        <div class=" col border-start border-secondary border-1 ms-2"> precio de producto: {{this.price}}</div>
+        </div>
+        
+        
+        </div>
+        <div class="row ">
+            <img src="{{this.url}}" class="rounded float-start" style="width: 200px; height:200px" alt="">
+        </div>
+        
+    </div>
+    {{/each}}
+    <div class="d-flex flex-column justify-content-center mt-3">
+        <h1>Centro de mensajes</h1>
+        <form onsubmit="return addinfo()" class="mt-3">
+            <label>Usuario</label>
+            <input type="text" name="user" placeholder="Pon tu usuario aqui" id="user">
+            <label>Mensaje</label>
+            <input type="text" name="message" placeholder="Pon tu mensaje aqui" id="msn">
+            <input type="submit" class="btn btn-success mt-3">
+        </form>
+        <div id="caja">
+
+        </div>
+    </div>

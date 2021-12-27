@@ -1,26 +1,20 @@
 const express= require('express')
 const app = express()
+require('./src/db.js')
+const {saveUser,retrieveUserId}=require('./controllers/controller.user.js')
+const {saveComment,getAllMessage}=require('./controllers/controller.message.js')
+const {createNewChat,getAllChats,findChatById}=require('./controllers/controller.chat')
+const faker=require('faker')
+const {normalizeInfo,print}=require('./src/utils/normalize_data.js')
+const routerMessage=require('./routers/comments.js')
 const handlebears=require('express-handlebars')
-const Container= require('./src/Container.js')
 let PORT = 8080
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }));
-let arr=[
-    {
-        name:"tijeras",
-        price:"25",
-        url:"https://www.officedepot.com.mx/medias/75879.jpg-1200ftw?context=bWFzdGVyfHJvb3R8OTQ0MTh8aW1hZ2UvanBlZ3xoNGMvaGY5Lzk3MzU3NTMyMDM3NDIuanBnfGNhNmUzMGE1YmIyNTJlODVjZjFjMzM2Mzk0MGRlZTI0MmRiODBmNDA0OTdiZDYzNmQyMGQ3NDRiODk0MzQxNmM"
-    },
-    {
-        name:"lapices",
-        price:"25",
-        url:"https://www.officedepot.com.mx/medias/45607.jpg-1200ftw?context=bWFzdGVyfHJvb3R8MjIzOTIwfGltYWdlL2pwZWd8aDZjL2gwMC85NzM0OTg1Mjg1NjYyLmpwZ3w0Y2M5MDk3MWIyYmQ2ZTFiNTAzNzJkZDY2Y2RmYTFlMzA2MDBmNzBiZmI4YTQxZjY4NjA5MjAyM2I1MWY3ZDBm"
-    }
-]
-//Array users
-let msn= []
+
 //middlewares
 app.use(express.static(__dirname+"/public"))
+app.use("/api",routerMessage)
 app.set("views","./views")
 app.set("view engine","hbs")
 app.engine("hbs", 
@@ -34,26 +28,30 @@ app.engine("hbs",
 //server
 const http=require('http')
 const server=http.createServer(app)
+
+//The routes below are use to control message comming from the server
  // sockt IO
 const {Server}=require('socket.io');
 const io=new Server(server)
-io.on("connection",(socket)=>{
-    socket.on("msn_client",(data)=>{
-        msn.push(data)
-        io.sockets.emit("msn_send",msn)
+io.on("connection",async(socket)=>{
+    const chat=await createNewChat("Chat")
+    socket.on("msn_client",async(data)=>{
+        
+        const {message,author}=data
+        const getUserId=await retrieveUserId(author)
+        const newComment=await saveComment(message,getUserId)
+        chat.comments.push(newComment)
+        const newChat=await chat.save()
+        const chatInfo=await findChatById(newChat._id)
+        const cleanup=JSON.stringify(chatInfo)
+        const cleanup2=JSON.parse(cleanup)
+        const optimatizedObject=normalizeInfo(cleanup2)
+        print(optimatizedObject)
+        io.sockets.emit("msn_send",{optimatizedObject,chatInfo})
         //socket.emit("msn_send",msn)
     })
 })
 // socket IO configutation
 server.listen(PORT,()=>{
     console.log(`Listening on port ${PORT}`)
-})
-
-app.get("/products",(req,res)=>{
-    res.render("main",{data:arr})
-})
-app.post("/products",(req,res)=>{
-    console.log(req.body)
-    arr.push(req.body)
-    res.redirect("/products")
 })
